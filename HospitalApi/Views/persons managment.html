@@ -1,0 +1,165 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" ng-app="TestApp">
+<head>
+    <title></title>
+    <link href="lib/bootstrap-3.3.7/css/bootstrap.min.css" rel="stylesheet" />
+
+    <script src="lib/angular.js"></script>
+    <script src="lib/jquery-1.12.1.min.js"></script>
+    <script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+
+    <script src="view-model/persons.js"></script>
+    <script src="view-model/roles.js"></script>
+
+    <style>
+        .frame {
+            margin: 20px;
+        }
+
+        button .glyphicon-plus {
+            color: #fff;
+        }
+
+        button.btn-success, .glyphicon-plus {
+            color: #222;
+        }
+
+        #editModal .modal-body > div > div {
+            float: left;
+        }
+
+            #editModal .modal-body:after {
+                content: " ";
+                display: block;
+                height: 0;
+                clear: both;
+                
+            }
+
+        #editModal .modal-body input:not([type="radio"]) {
+            margin: 5px;
+            padding: 5px;
+            width: 200px;
+        }
+
+        #editModal .modal-body > .roles
+        {
+            padding-left:20px;
+        }
+    </style>
+
+    <script>
+        (function (app) {
+            app.controller('PersonsController', PersonsController)
+               .controller('RolesController', RolesController)
+
+        })(angular.module('TestApp', []));
+    </script>
+</head>
+<body ng-controller="PersonsController">
+    <div class="frame">
+        <button class="btn btn-success" data-toggle="modal" data-target="#editModal">
+            <span class="glyphicon glyphicon-plus"></span>&nbsp; Add New Person
+        </button>
+        
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody ng-controller="RolesController">
+                <tr ng-repeat="person in persons">
+                    <td>{{person.FirstName}} {{person.LastName}}</td>
+                    <td>{{person.Email}}</td>
+                    <td>{{rolesMap[person.RoleId]}}</td>
+                    <td style="width:100px">
+                        <button class="btn btn-primary" data-toggle="modal" data-target="#editModal" ng-click="setCurrentPerson(person)">
+                            <span class="glyphicon glyphicon-pencil"></span>
+                        </button>
+                        <button class="btn btn-danger" data-toggle="modal" data-target="#deleteModal" ng-click="setCurrentPerson(person)">
+                            <span class="glyphicon glyphicon-trash"></span>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+       
+        <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="myModalLabel">
+                            <span ng-hide="currentPerson"><span class="glyphicon glyphicon-plus"></span>&nbsp; Insert a new person</span>
+                            <span ng-show="currentPerson"><span class="glyphicon glyphicon-pencil"></span>&nbsp; Update {{currentPerson.LastName}} {{currentPerson.FirstName}}</span>
+                        </h4>
+                    </div>
+                    <div class="modal-body" ng-controller="RolesController">
+                        <div ng-show="!currentPerson">
+                            <div>
+                                <input type="text" ng-model="newPerson.id" placeholder="please enter the person id" /><br />
+                                <input type="text" ng-model="newPerson.firstName" placeholder="first name" /><br />
+                                <input type="text" ng-model="newPerson.lastName" placeholder="last name" /><br />
+                                <input type="text" ng-model="newPerson.address" placeholder="where do this person lives?" /><br />
+                                <input type="text" ng-model="newPerson.phone" placeholder="phone number" /><br />
+                                <input type="text" ng-model="newPerson.email" placeholder="email address" /><br />
+                            </div>
+                            <div class="roles">
+                                <div ng-repeat="role in roles">
+                                    <input type="radio" name="role" value="{{role.Id}}" ng-model="newPerson.roleId" />
+                                    <span>{{role.Title}}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div ng-hide="!currentPerson">
+                            <div>
+                                <input type="text" value="{{currentPerson.Id}}" ng-disabled="true" /><br />
+                                <input type="text" ng-model="currentPerson.FirstName" /><br />
+                                <input type="text" ng-model="currentPerson.LastName" /><br />
+                                <input type="text" ng-model="currentPerson.Address" /><br />
+                                <input type="text" ng-model="currentPerson.Phone" /><br />
+                                <input type="text" ng-model="currentPerson.Email" /><br />
+                            </div>
+                            <div class="roles">
+                                <div ng-repeat="role in roles">
+                                    <input type="radio" name="role" value="{{role.Id}}" ng-model="currentPerson.RoleId" />
+                                    <span>{{role.Title}}</span>
+                                </div>
+                            </div>
+                        </div>
+                       <br/>
+                    </div>
+                    <div class="modal-footer">
+                        <!--{{newPerson}}-->
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="currentPerson ? updatePerson() : insertPerson()">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="myModalLabel">
+                            <span class="glyphicon glyphicon-trash"></span>&nbsp; Delete {{currentPerson.LastName}} {{currentPerson.FirstName}} ({{currentPerson.Id}})
+                        </h4>
+                    </div>
+                    <div class="modal-body" ng-controller="RolesController">
+                       Are you sure you wish to remove this person?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-danger" data-dismiss="modal" ng-click="deletePerson()">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
